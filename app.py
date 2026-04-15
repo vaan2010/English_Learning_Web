@@ -207,8 +207,8 @@ def download_audio(job_id: str, video_id: str, out_path: Path) -> tuple[Path, fl
                 jobs[job_id]["message"] = f"下載音訊中 {percent}%"
                 jobs[job_id]["progressPercent"] = min(30, int(percent * 0.3))
 
-    ydl_opts = {
-        "format": DOWNLOAD_FORMAT,
+    url = extract_video_url(video_id)
+    base_opts = {
         "outtmpl": str(out_path.with_suffix(".%(ext)s")),
         "quiet": True,
         "noplaylist": True,
@@ -221,13 +221,24 @@ def download_audio(job_id: str, video_id: str, out_path: Path) -> tuple[Path, fl
         },
     }
     if COOKIEFILE and COOKIEFILE.exists():
-        ydl_opts["cookiefile"] = str(COOKIEFILE)
-    url = extract_video_url(video_id)
-    with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        downloaded = Path(ydl.prepare_filename(info))
-    duration = float(info.get("duration") or 0.0)
-    return downloaded, duration
+        base_opts["cookiefile"] = str(COOKIEFILE)
+
+    last_error = None
+    for fmt in [DOWNLOAD_FORMAT, "bestaudio/best"]:
+        ydl_opts = {**base_opts, "format": fmt}
+        try:
+            with YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                downloaded = Path(ydl.prepare_filename(info))
+            duration = float(info.get("duration") or 0.0)
+            return downloaded, duration
+        except Exception as exc:
+            last_error = exc
+            with jobs_lock:
+                if job_id in jobs:
+                    jobs[job_id]["message"] = f"音訊格式回退重試中（{fmt} 失敗）"
+
+    raise RuntimeError(f"下載音訊失敗：{last_error}")
 
 
 def transcribe_worker(job_id: str, video_id: str):
