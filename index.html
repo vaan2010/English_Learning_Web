@@ -656,6 +656,11 @@
     const startProgressFillEl = document.getElementById("startProgressFill");
     const startProgressTextEl = document.getElementById("startProgressText");
     const startProgressDetailEl = document.getElementById("startProgressDetail");
+    const API_BASE =
+      window.__API_BASE__ ||
+      (window.location.hostname.endsWith("github.io")
+        ? "https://YOUR-RENDER-SERVICE.onrender.com"
+        : "");
 
     let player = null;
     let subtitlePollTimer = null;
@@ -697,6 +702,10 @@
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#39;");
+    }
+
+    function apiUrl(path) {
+      return `${API_BASE}${path}`;
     }
 
     function normalizeVideoUrl(videoId) {
@@ -927,7 +936,7 @@
     }
 
     async function fetchZhSubtitle(text) {
-      const resp = await fetch("/api/translate", {
+      const resp = await fetch(apiUrl("/api/translate"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text })
@@ -1147,7 +1156,7 @@
     }
 
     async function startTranscription(videoId) {
-      const resp = await fetch("/api/transcribe/start", {
+      const resp = await fetch(apiUrl("/api/transcribe/start"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ videoId })
@@ -1162,14 +1171,14 @@
     }
 
     async function getTranscriptionStatus(jobId) {
-      const resp = await fetch(`/api/transcribe/status/${encodeURIComponent(jobId)}`);
+      const resp = await fetch(apiUrl(`/api/transcribe/status/${encodeURIComponent(jobId)}`));
       if (!resp.ok) throw new Error("無法查詢字幕狀態");
       return resp.json();
     }
 
     async function checkBackendHealth() {
       try {
-        const resp = await fetch("/api/health");
+        const resp = await fetch(apiUrl("/api/health"));
         if (!resp.ok) {
           setStatus(
             `目前頁面不是字幕後端服務（/api/health 回傳 ${resp.status}）。請用 python app.py 並開 http://localhost:5500`,

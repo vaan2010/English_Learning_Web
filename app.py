@@ -8,6 +8,7 @@ from urllib.request import urlopen
 from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
 from faster_whisper import WhisperModel
 from yt_dlp import YoutubeDL
 
@@ -17,6 +18,16 @@ DOWNLOAD_DIR = BASE_DIR / "tmp_audio"
 DOWNLOAD_DIR.mkdir(exist_ok=True)
 
 app = Flask(__name__, static_folder=".", static_url_path="")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*")
+cors_origins = (
+    [origin.strip() for origin in CORS_ORIGINS.split(",") if origin.strip()]
+    if CORS_ORIGINS != "*"
+    else "*"
+)
+CORS(
+    app,
+    resources={r"/api/*": {"origins": cors_origins}},
+)
 
 MODEL_SIZE = os.getenv("WHISPER_MODEL", "small")
 COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
