@@ -9,7 +9,7 @@ from pathlib import Path
 
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
-from faster_whisper import WhisperModel
+import requests
 from yt_dlp import YoutubeDL
 
 
@@ -29,14 +29,10 @@ CORS(
     resources={r"/api/*": {"origins": cors_origins}},
 )
 
-MODEL_SIZE = os.getenv("WHISPER_MODEL", "small")
-COMPUTE_TYPE = os.getenv("WHISPER_COMPUTE_TYPE", "int8")
-DEVICE = os.getenv("WHISPER_DEVICE", "cpu")
-BEAM_SIZE = int(os.getenv("WHISPER_BEAM_SIZE", "3"))
-VAD_FILTER = os.getenv("WHISPER_VAD_FILTER", "true").lower() == "true"
 DOWNLOAD_FORMAT = os.getenv("YTDLP_FORMAT", "bestaudio[abr<=160]/bestaudio/best")
-
-model = WhisperModel(MODEL_SIZE, device=DEVICE, compute_type=COMPUTE_TYPE)
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "").strip()
+OPENAI_TRANSCRIBE_MODEL = os.getenv("OPENAI_TRANSCRIBE_MODEL", "whisper-1")
+OPENAI_TIMEOUT_SEC = int(os.getenv("OPENAI_TIMEOUT_SEC", "600"))
 
 jobs = {}
 jobs_lock = threading.Lock()
@@ -46,6 +42,54 @@ translation_lock = threading.Lock()
 
 def extract_video_url(video_id: str) -> str:
     return f"https://www.youtube.com/watch?v={video_id}"
+
+
+def transcribe_with_openai(audio_path: Path, language: str = "en") -> list[dict]:
+    if not OPENAI_API_KEY:
+        raise RuntimeError("缺少 OPENAI_API_KEY，無法呼叫外部語音 API")
+
+    with audio_path.open("rb") as audio_fp:
+        files = {"file": (audio_path.name, audio_fp, "audio/mpeg")}
+        data = {
+            "model": OPENAI_TRANSCRIBE_MODEL,
+            "response_format": "verbose_json",
+            "temperature": "0",
+        }
+        if language:
+            data["language"] = language
+
+        resp = requests.post(
+            "https://api.openai.com/v1/audio/transcriptions",
+            headers={"Authorization": f"Bearer {OPENAI_API_KEY}"},
+            files=files,
+            data=data,
+            timeout=OPENAI_TIMEOUT_SEC,
+        )
+
+    if resp.status_code >= 400:
+        raise RuntimeError(f"外部語音 API 失敗：HTTP {resp.status_code} {resp.text[:240]}")
+
+    payload = resp.json()
+    raw_segments = payload.get("segments") or []
+    if not raw_segments:
+        text = (payload.get("text") or "").strip()
+        if text:
+            return [{"start": 0.0, "end": 3.0, "text": text}]
+        return []
+
+    parsed = []
+    for seg in raw_segments:
+        text = (seg.get("text") or "").strip()
+        if not text:
+            continue
+        parsed.append(
+            {
+                "start": round(float(seg.get("start", 0.0)), 3),
+                "end": round(float(seg.get("end", seg.get("start", 0.0))), 3),
+                "text": text,
+            }
+        )
+    return parsed
 
 
 def translate_text_to_zh_tw(text: str) -> str:
@@ -137,7 +181,7 @@ def transcribe_worker(job_id: str, video_id: str):
         audio_file, audio_duration = download_audio(job_id, video_id, audio_prefix)
 
         with jobs_lock:
-            jobs[job_id]["message"] = f"語音辨識中（模型 {MODEL_SIZE}）"
+            jobs[job_id]["message"] = f"語音辨識中（外部 API: {OPENAI_TRANSCRIBE_MODEL}）"
             jobs[job_id]["progressPercent"] = max(jobs[job_id].get("progressPercent", 0), 30)
 
         estimated_transcribe_seconds = max(25.0, audio_duration * 1.2)
@@ -147,37 +191,11 @@ def transcribe_worker(job_id: str, video_id: str):
             daemon=True,
         ).start()
 
-        segments, _ = model.transcribe(
-            str(audio_file),
-            vad_filter=VAD_FILTER,
-            word_timestamps=False,
-            beam_size=BEAM_SIZE,
-        )
-
-        built_segments = []
-        estimated_total_segments = max(20, int(audio_duration / 2.8)) if audio_duration > 0 else 80
-        for seg in segments:
-            text = (seg.text or "").strip()
-            if text:
-                built_segments.append(
-                    {
-                        "start": round(float(seg.start), 3),
-                        "end": round(float(seg.end), 3),
-                        "text": text,
-                    }
-                )
-
-            with jobs_lock:
-                jobs[job_id]["segments"] = built_segments
-                jobs[job_id]["processedSegments"] = len(built_segments)
-                # 辨識進度：不依賴文字是否非空，只要辨識時間前進就更新，避免長時間卡在 30%。
-                time_ratio = (
-                    min(1.0, float(seg.end) / audio_duration) if audio_duration and audio_duration > 0 else 0.0
-                )
-                segment_ratio = min(1.0, len(built_segments) / estimated_total_segments)
-                ratio = max(time_ratio, segment_ratio * 0.9)
-                progress = 30 + int(ratio * 69)
-                jobs[job_id]["progressPercent"] = max(jobs[job_id]["progressPercent"], min(99, progress))
+        built_segments = transcribe_with_openai(audio_file, language="en")
+        with jobs_lock:
+            jobs[job_id]["segments"] = built_segments
+            jobs[job_id]["processedSegments"] = len(built_segments)
+            jobs[job_id]["progressPercent"] = max(jobs[job_id]["progressPercent"], 99)
 
         with jobs_lock:
             jobs[job_id]["status"] = "done"
@@ -202,7 +220,14 @@ def root():
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    return jsonify({"ok": True, "service": "whisper-transcribe-backend"})
+    return jsonify(
+        {
+            "ok": True,
+            "service": "openai-transcribe-backend",
+            "openai_key_configured": bool(OPENAI_API_KEY),
+            "transcribe_model": OPENAI_TRANSCRIBE_MODEL,
+        }
+    )
 
 
 @app.route("/api/transcribe/start", methods=["POST"])
