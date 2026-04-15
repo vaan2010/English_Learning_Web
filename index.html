@@ -1,0 +1,1546 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>測試</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      font-family: "Segoe UI", "Noto Sans TC", Arial, sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 24px;
+      background: #101418;
+      color: #e8edf2;
+    }
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 1.6rem;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .tools label {
+      font-size: 0.92rem;
+      color: #c6d5e2;
+    }
+    .tools select,
+    .tools input[type="range"] {
+      background: #131b23;
+      color: #e8edf2;
+      border: 1px solid #3a4651;
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+    .tools .muted {
+      font-size: 0.85rem;
+      color: #9fb0bf;
+      min-width: 90px;
+    }
+    .tools .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: #c6d5e2;
+    }
+    .speed-tool {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border: 1px solid #3a4651;
+      border-radius: 8px;
+      background: #131b23;
+      flex-shrink: 0;
+    }
+    .speed-tool:hover {
+      border-color: #4c86c7;
+    }
+    .speed-tool .speed-gauge {
+      width: 22px;
+      height: 22px;
+      color: #c6d5e2;
+      pointer-events: none;
+    }
+    .speed-tool select {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .tools-icon-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      padding: 0;
+      border: 1px solid #3a4651;
+      border-radius: 8px;
+      background: #131b23;
+      color: #c6d5e2;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .tools-icon-btn:hover {
+      border-color: #4c86c7;
+      color: #e8edf2;
+    }
+    .tools-icon-btn.is-active {
+      border-color: #2d8cff;
+      background: #1a2d44;
+      color: #59b3ff;
+    }
+    .tools-icon-btn svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+    }
+    .repeat-line-btn .rl-on {
+      display: none;
+    }
+    .repeat-line-btn.is-active .rl-off {
+      display: none;
+    }
+    .repeat-line-btn.is-active .rl-on {
+      display: block;
+    }
+    .loop-video-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      border: 1px solid #3a4651;
+      background: #131b23;
+      position: relative;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .loop-video-toggle:hover {
+      border-color: #4c86c7;
+    }
+    .loop-video-toggle input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      margin: 0;
+    }
+    .loop-video-toggle .lv-icon {
+      width: 22px;
+      height: 22px;
+      display: block;
+      color: #c6d5e2;
+    }
+    .loop-video-toggle .lv-icon svg {
+      width: 100%;
+      height: 100%;
+    }
+    .loop-video-toggle input:checked ~ .lv-off {
+      display: none;
+    }
+    .loop-video-toggle input:not(:checked) ~ .lv-on {
+      display: none;
+    }
+    .loop-video-toggle input:checked {
+      outline: none;
+    }
+    .loop-video-toggle.is-on {
+      border-color: #2d8cff;
+      background: #1a2d44;
+    }
+    .loop-video-toggle.is-on .lv-on {
+      color: #59b3ff;
+    }
+    input[type="url"] {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #3a4651;
+      border-radius: 8px;
+      background: #131b23;
+      color: #e8edf2;
+      font-size: 0.95rem;
+    }
+    button {
+      padding: 10px 16px;
+      border: 0;
+      border-radius: 8px;
+      background: #2d8cff;
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover {
+      filter: brightness(1.08);
+    }
+    .content-row {
+      --player-width: 58%;
+      --divider-width: 8px;
+      display: grid;
+      grid-template-columns: minmax(0, var(--player-width)) var(--divider-width) minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+    .pane-divider {
+      width: 100%;
+      border-radius: 999px;
+      background: linear-gradient(180deg, #2c4258, #1d2d3e);
+      cursor: col-resize;
+      user-select: none;
+    }
+    .pane-divider:hover {
+      background: linear-gradient(180deg, #3b6182, #29415a);
+    }
+    .player-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 280px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 10px 24px rgb(0 0 0 / 25%);
+    }
+    .player-wrap::before {
+      content: "";
+      display: block;
+      padding-top: 56.25%;
+    }
+    .player-wrap.processing #player {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .player-wrap.processing::after {
+      content: "字幕分析中，完成後將從頭播放";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #d6e4f0;
+      background: rgb(0 0 0 / 82%);
+      font-size: 1rem;
+      letter-spacing: 0.02em;
+    }
+    .player-wrap.audio-only #player {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .player-wrap.audio-only::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgb(0 0 0 / 86%) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23d6e4f0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'/%3E%3Cline x1='1' y1='1' x2='23' y2='23'/%3E%3C/svg%3E")
+        center center / 72px 72px no-repeat;
+    }
+    .audio-only-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 6px 8px;
+      border-radius: 8px;
+      border: 1px solid #3a4651;
+      background: #131b23;
+      position: relative;
+    }
+    .audio-only-toggle:hover {
+      border-color: #4c86c7;
+    }
+    .audio-only-toggle input {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+      margin: 0;
+    }
+    .audio-only-toggle .eye-icon {
+      width: 22px;
+      height: 22px;
+      display: block;
+      color: #c6d5e2;
+    }
+    .audio-only-toggle .eye-icon svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .audio-only-toggle input:not(:checked) ~ .eye-slash {
+      display: none;
+    }
+    .audio-only-toggle input:checked ~ .eye-open {
+      display: none;
+    }
+    #player {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .right-panel {
+      width: 100%;
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 10px;
+      min-height: 420px;
+    }
+    .subtitle-card,
+    .history-panel {
+      border: 1px solid #2f3e4f;
+      border-radius: 10px;
+      background: #0f1822;
+      padding: 10px;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .subtitle-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .subtitle-box {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 14px 20px 14px 14px;
+      line-height: 1.75;
+      font-size: clamp(1rem, 1.25vw, 1.35rem);
+      white-space: pre-wrap;
+      overflow-y: auto;
+      overflow-x: hidden;
+      overflow-wrap: normal;
+      word-break: normal;
+      hyphens: auto;
+      min-height: 0;
+      flex: 1;
+    }
+    .subtitle-en {
+      color: #eaf2fa;
+      margin-bottom: 10px;
+    }
+    .subtitle-zh {
+      color: #9ed0ff;
+      border-top: 1px solid #29415a;
+      padding-top: 10px;
+      font-size: 0.95em;
+    }
+    .subtitle-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-top: 4px;
+      flex-shrink: 0;
+    }
+    .word-meaning {
+      display: none;
+      border: 1px solid #35506a;
+      background: #102131;
+      color: #cfe3f7;
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+    .word-meaning.active {
+      display: block;
+    }
+    .word-meaning strong {
+      color: #ffffff;
+    }
+    .icon-btn {
+      min-width: 46px;
+      padding: 8px 10px;
+      border: 1px solid #3a4a5a;
+      border-radius: 8px;
+      background: #172331;
+      color: #e8edf2;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .icon-btn:hover {
+      border-color: #5e8fc7;
+      background: #1d3045;
+    }
+    .history-panel { overflow: auto; }
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #c6d5e2;
+    }
+    .history-header button {
+      padding: 6px 10px;
+      font-size: 0.82rem;
+    }
+    .history-list {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .history-empty {
+      color: #9fb0bf;
+      font-size: 0.9rem;
+      padding: 4px;
+    }
+    .history-item {
+      border: 1px solid #344455;
+      background: #121d28;
+      border-radius: 8px;
+      padding: 6px;
+      cursor: pointer;
+      text-align: left;
+      color: #e8edf2;
+    }
+    .history-item:hover {
+      border-color: #4c86c7;
+      background: #142334;
+    }
+    .history-item img {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+      margin-bottom: 5px;
+      background: #000;
+    }
+    .history-item .meta {
+      font-size: 0.8rem;
+      color: #c4d3e2;
+      word-break: break-all;
+    }
+    .status {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #9eb1c4;
+    }
+    .start-progress {
+      margin-top: 8px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 0.86rem;
+      color: #b7c8d9;
+    }
+    .start-progress.active {
+      display: flex;
+    }
+    .start-progress-track {
+      flex: 1;
+      height: 8px;
+      border-radius: 999px;
+      background: #1d2a37;
+      overflow: hidden;
+      border: 1px solid #304255;
+    }
+    .start-progress-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #2d8cff, #59b3ff);
+      transition: width 0.25s ease;
+    }
+    .start-progress-text {
+      min-width: 58px;
+      text-align: right;
+    }
+    .start-progress-detail {
+      width: 100%;
+      font-size: 0.8rem;
+      color: #9eb1c4;
+      margin-top: 2px;
+    }
+    .hint {
+      margin-top: 12px;
+      font-size: 0.86rem;
+      color: #9fb0bf;
+    }
+    .error {
+      color: #ff9f9f;
+    }
+    @media (max-width: 900px) {
+      .content-row {
+        grid-template-columns: 1fr;
+      }
+      .pane-divider {
+        display: none;
+      }
+      .player-wrap,
+      .right-panel {
+        width: 100%;
+      }
+      .subtitle-box {
+        min-height: 120px;
+      }
+      .history-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h1>測試</h1>
+    <div class="controls">
+      <input
+        id="youtubeUrl"
+        type="url"
+        placeholder="貼上 YouTube 影片網址（例如：https://www.youtube.com/watch?v=...）"
+      />
+      <button id="loadBtn">載入影片</button>
+    </div>
+    <div class="tools">
+      <div class="speed-tool" title="語速">
+        <svg class="speed-gauge" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" />
+          <path d="M12 6v6l4 2" />
+        </svg>
+        <select id="speedSelect" aria-label="語速">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1x</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2x</option>
+        </select>
+      </div>
+      <button id="repeatLineBtn" type="button" class="tools-icon-btn repeat-line-btn" aria-pressed="false" aria-label="單句重複" title="單句重複">
+        <span class="rl-off" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 2.1l4 4-4 4" />
+            <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.4" />
+            <path d="M7 21.9l-4-4 4-4" />
+            <path d="M21 11.8v2a4 4 0 0 1-4 4H4.6" />
+          </svg>
+        </span>
+        <span class="rl-on" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 2.1l4 4-4 4" />
+            <path d="M3 12.2v-2a4 4 0 0 1 4-4h12.4" />
+            <path d="M7 21.9l-4-4 4-4" />
+            <path d="M21 11.8v2a4 4 0 0 1-4 4H4.6" />
+            <circle cx="12" cy="12" r="2" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+      </button>
+      <label id="loopVideoToggle" class="loop-video-toggle" title="影片重複" aria-label="影片重複播放">
+        <input id="loopVideoCheckbox" type="checkbox" />
+        <span class="lv-icon lv-off" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+            <path d="M16 21h5v-5" />
+          </svg>
+        </span>
+        <span class="lv-icon lv-on" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+            <path d="M16 21h5v-5" />
+            <path d="M12 8v4l2 2" />
+          </svg>
+        </span>
+      </label>
+      <label for="playerSizeRange">視窗大小</label>
+      <input id="playerSizeRange" type="range" min="40" max="100" value="78" step="1" />
+      <span id="playerSizeText" class="muted">78%</span>
+      <label class="audio-only-toggle" title="遮蔽畫面（只聽音訊）" aria-label="遮蔽畫面，只播放音訊">
+        <input id="audioOnlyCheckbox" type="checkbox" checked />
+        <span class="eye-icon eye-open" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </span>
+        <span class="eye-icon eye-slash" aria-hidden="true">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
+            <line x1="1" y1="1" x2="23" y2="23" />
+          </svg>
+        </span>
+      </label>
+      <label class="toggle">
+        <input id="showZhSubtitleCheckbox" type="checkbox" />
+        中文字幕
+      </label>
+    </div>
+    <div class="content-row">
+      <section class="player-wrap">
+        <div id="player"></div>
+      </section>
+      <div id="paneDivider" class="pane-divider" title="拖曳調整左右寬度" aria-label="拖曳調整左右寬度"></div>
+      <aside class="right-panel">
+        <section class="subtitle-card">
+          <section id="subtitleBox" class="subtitle-box">字幕會顯示在這裡。</section>
+          <div id="wordMeaningBox" class="word-meaning"></div>
+          <div class="subtitle-controls">
+            <button id="prevLineBtn" type="button" class="icon-btn" title="上一句" aria-label="上一句">⏮</button>
+            <button id="playPauseBtn" type="button" class="icon-btn" title="播放" aria-label="播放">▶</button>
+            <button id="nextLineBtn" type="button" class="icon-btn" title="下一句" aria-label="下一句">⏭</button>
+          </div>
+        </section>
+        <section class="history-panel">
+          <div class="history-header">
+            <span>歷史紀錄</span>
+            <button id="clearHistoryBtn" type="button">清空</button>
+          </div>
+          <div id="historyList" class="history-list"></div>
+        </section>
+      </aside>
+    </div>
+    <div id="status" class="status">請先輸入 YouTube 影片網址。</div>
+    <div id="startProgress" class="start-progress">
+      <div class="start-progress-track">
+        <div id="startProgressFill" class="start-progress-fill"></div>
+      </div>
+      <span id="startProgressText" class="start-progress-text">0%</span>
+      <div id="startProgressDetail" class="start-progress-detail"></div>
+    </div>
+    <div class="hint">
+      說明：此版本會透過後端語音辨識（Whisper）自動生成字幕，不依賴 YouTube 既有字幕。首次轉譯需要一些時間。
+    </div>
+  </main>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script>
+    const urlInput = document.getElementById("youtubeUrl");
+    const loadBtn = document.getElementById("loadBtn");
+    const speedSelect = document.getElementById("speedSelect");
+    const repeatLineBtn = document.getElementById("repeatLineBtn");
+    const loopVideoCheckbox = document.getElementById("loopVideoCheckbox");
+    const loopVideoToggle = document.getElementById("loopVideoToggle");
+    const audioOnlyCheckbox = document.getElementById("audioOnlyCheckbox");
+    const showZhSubtitleCheckbox = document.getElementById("showZhSubtitleCheckbox");
+    const historyList = document.getElementById("historyList");
+    const clearHistoryBtn = document.getElementById("clearHistoryBtn");
+    const prevLineBtn = document.getElementById("prevLineBtn");
+    const playPauseBtn = document.getElementById("playPauseBtn");
+    const nextLineBtn = document.getElementById("nextLineBtn");
+    const playerSizeRange = document.getElementById("playerSizeRange");
+    const playerSizeText = document.getElementById("playerSizeText");
+    const playerWrap = document.querySelector(".player-wrap");
+    const contentRow = document.querySelector(".content-row");
+    const paneDivider = document.getElementById("paneDivider");
+    const subtitleBox = document.getElementById("subtitleBox");
+    const wordMeaningBox = document.getElementById("wordMeaningBox");
+    const statusEl = document.getElementById("status");
+    const startProgressEl = document.getElementById("startProgress");
+    const startProgressFillEl = document.getElementById("startProgressFill");
+    const startProgressTextEl = document.getElementById("startProgressText");
+    const startProgressDetailEl = document.getElementById("startProgressDetail");
+
+    let player = null;
+    let subtitlePollTimer = null;
+    let jobPollTimer = null;
+    let subtitles = [];
+    let activeSubtitleIndex = -1;
+    let currentJobId = null;
+    let videoLoopEnabled = false;
+    let lineLoopEnabled = false;
+    let lineLoopSegment = null;
+    let playbackLocked = false;
+    let hiddenPreviewMode = false;
+    let playbackStartedForUser = false;
+    const isFileProtocol = window.location.protocol === "file:";
+    const HISTORY_KEY = "youtube_video_history_v1";
+    const HISTORY_LIMIT = 15;
+    const LINE_JOIN_GAP_SEC = 1.15;
+    const LINE_JOIN_GAP_WHEN_COMMA_SEC = 2.2;
+    const LINE_JOIN_GAP_NO_TERMINAL_SEC = 3.2;
+    const PUNCT_END_REGEX = /[.?!。！？…]["')\]]*$/;
+    const CONTINUATION_COMMA_REGEX = /[,，]["')\]]*$/;
+    const MIN_READY_SECONDS = 6;
+    const MIN_READY_SEGMENTS = 2;
+    let videoHistory = [];
+    let currentSubtitlePayload = null;
+    const zhSubtitleCache = new Map();
+    const zhSubtitlePending = new Set();
+    const wordMeaningCache = new Map();
+
+    function setStatus(text, isError = false) {
+      statusEl.textContent = text;
+      statusEl.classList.toggle("error", isError);
+    }
+
+    function escapeHtml(text) {
+      return (text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function normalizeVideoUrl(videoId) {
+      return `https://www.youtube.com/watch?v=${videoId}`;
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(HISTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+          .map((item) => {
+            if (typeof item === "string") {
+              const videoId = extractVideoId(item);
+              if (!videoId) return null;
+              return {
+                url: normalizeVideoUrl(videoId),
+                videoId,
+                title: videoId,
+              };
+            }
+            if (item && typeof item === "object") {
+              const videoId = extractVideoId(item.videoId || item.url || "");
+              if (!videoId) return null;
+              return {
+                url: normalizeVideoUrl(videoId),
+                videoId,
+                title: (item.title || videoId).trim(),
+              };
+            }
+            return null;
+          })
+          .filter(Boolean);
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(videoHistory));
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+      if (!videoHistory.length) {
+        const empty = document.createElement("div");
+        empty.className = "history-empty";
+        empty.textContent = "尚無歷史紀錄";
+        historyList.appendChild(empty);
+        return;
+      }
+
+      videoHistory.forEach((entry) => {
+        const videoId = entry.videoId;
+        if (!videoId) return;
+
+        const item = document.createElement("button");
+        item.type = "button";
+        item.className = "history-item";
+        item.title = "點擊載入此影片";
+        item.innerHTML = `
+          <img src="https://i.ytimg.com/vi/${videoId}/mqdefault.jpg" alt="thumbnail" />
+          <div class="meta">${escapeHtml(entry.title || videoId)}</div>
+        `;
+        item.addEventListener("click", () => {
+          urlInput.value = entry.url;
+          handleLoadClick();
+        });
+        historyList.appendChild(item);
+      });
+    }
+
+    async function fetchVideoTitle(videoId) {
+      try {
+        const endpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(
+          normalizeVideoUrl(videoId)
+        )}&format=json`;
+        const resp = await fetch(endpoint);
+        if (!resp.ok) return videoId;
+        const data = await resp.json();
+        return (data.title || videoId).trim();
+      } catch (_) {
+        return videoId;
+      }
+    }
+
+    async function addVideoToHistory(videoId) {
+      const normalized = normalizeVideoUrl(videoId);
+      const existing = videoHistory.find((entry) => entry.videoId === videoId);
+      const title = existing?.title || (await fetchVideoTitle(videoId));
+      const newEntry = { url: normalized, videoId, title };
+      videoHistory = [newEntry, ...videoHistory.filter((entry) => entry.videoId !== videoId)].slice(
+        0,
+        HISTORY_LIMIT
+      );
+      saveHistory();
+      renderHistory();
+    }
+
+    function applyPlaybackRate() {
+      if (!player || typeof player.setPlaybackRate !== "function") return;
+      const rate = Number(speedSelect.value || 1);
+      try {
+        player.setPlaybackRate(rate);
+      } catch (_) {
+        // 某些影片可能不支援所有倍率
+      }
+    }
+
+    function applyPlayerSize() {
+      const size = Number(playerSizeRange.value || 78);
+      contentRow.style.setProperty("--player-width", `${size}%`);
+      playerSizeText.textContent = `${size}%`;
+    }
+
+    function setPlayerWidthPercent(size) {
+      const clamped = Math.max(35, Math.min(75, Number(size || 58)));
+      contentRow.style.setProperty("--player-width", `${clamped}%`);
+      playerSizeRange.value = String(Math.round(clamped));
+      playerSizeText.textContent = `${Math.round(clamped)}%`;
+    }
+
+    function attachPaneDividerDrag() {
+      if (!paneDivider) return;
+      paneDivider.addEventListener("mousedown", (event) => {
+        if (window.matchMedia("(max-width: 900px)").matches) return;
+        event.preventDefault();
+        const rowRect = contentRow.getBoundingClientRect();
+
+        const onMove = (moveEvent) => {
+          const x = moveEvent.clientX - rowRect.left;
+          const percent = (x / rowRect.width) * 100;
+          setPlayerWidthPercent(percent);
+        };
+
+        const onUp = () => {
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup", onUp);
+        };
+
+        window.addEventListener("mousemove", onMove);
+        window.addEventListener("mouseup", onUp);
+      });
+    }
+
+    function applyAudioOnlyMode() {
+      playerWrap.classList.toggle("audio-only", audioOnlyCheckbox.checked);
+    }
+
+    function setLineLoop(enabled, segment = null) {
+      lineLoopEnabled = enabled;
+      lineLoopSegment = enabled ? getSentenceWindowBySegment(segment) : null;
+      repeatLineBtn.setAttribute("aria-pressed", String(enabled));
+      repeatLineBtn.setAttribute("aria-label", enabled ? "單句重複：開" : "單句重複：關");
+      repeatLineBtn.classList.toggle("is-active", enabled);
+    }
+
+    function setStartProgress(percent, visible = true) {
+      const safe = Math.max(0, Math.min(100, Math.round(percent)));
+      startProgressFillEl.style.width = `${safe}%`;
+      startProgressTextEl.textContent = `${safe}%`;
+      startProgressEl.classList.toggle("active", visible);
+      if (!visible) {
+        startProgressDetailEl.textContent = "";
+      }
+    }
+
+    function setStartProgressDetail(text = "") {
+      startProgressDetailEl.textContent = text;
+    }
+
+    function isSentenceEnding(text) {
+      return PUNCT_END_REGEX.test((text || "").trim());
+    }
+
+    function endsWithCommaContinuation(text) {
+      return CONTINUATION_COMMA_REGEX.test((text || "").trim());
+    }
+
+    function startsWithLowercase(text) {
+      const head = (text || "").trim().charAt(0);
+      return /^[a-z]$/.test(head);
+    }
+
+    function getSentenceWindowByIndex(index, options = {}) {
+      const includeForward = Boolean(options.includeForward);
+      if (!subtitles.length || index < 0 || index >= subtitles.length) return null;
+      let startIdx = index;
+      let endIdx = index;
+
+      while (startIdx > 0) {
+        const prev = subtitles[startIdx - 1];
+        const curr = subtitles[startIdx];
+        const gap = Number(curr.start) - Number(prev.end);
+        const maxGap = endsWithCommaContinuation(prev.text)
+          ? LINE_JOIN_GAP_WHEN_COMMA_SEC
+          : LINE_JOIN_GAP_SEC;
+        if (gap > maxGap) break;
+        if (isSentenceEnding(prev.text)) break;
+        startIdx -= 1;
+      }
+
+      if (includeForward) {
+        while (endIdx < subtitles.length - 1) {
+          const curr = subtitles[endIdx];
+          if (isSentenceEnding(curr.text) && !endsWithCommaContinuation(curr.text)) {
+            break;
+          }
+          const next = subtitles[endIdx + 1];
+          const gap = Number(next.start) - Number(curr.end);
+          let maxGap = endsWithCommaContinuation(curr.text)
+            ? LINE_JOIN_GAP_WHEN_COMMA_SEC
+            : LINE_JOIN_GAP_SEC;
+          if (!isSentenceEnding(curr.text) || startsWithLowercase(next.text)) {
+            maxGap = Math.max(maxGap, LINE_JOIN_GAP_NO_TERMINAL_SEC);
+          }
+          if (gap > maxGap) break;
+          endIdx += 1;
+          if (isSentenceEnding(subtitles[endIdx].text)) break;
+        }
+      }
+
+      const start = Math.max(0, Number(subtitles[startIdx].start));
+      const end = Math.max(start, Number(subtitles[endIdx].end));
+      const text = subtitles.slice(startIdx, endIdx + 1).map((s) => s.text || "").join(" ").trim();
+      return { start, end, text, startIdx, endIdx };
+    }
+
+    async function fetchZhSubtitle(text) {
+      const resp = await fetch("/api/translate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      });
+      if (!resp.ok) throw new Error("中文字幕翻譯失敗");
+      const data = await resp.json();
+      return data.translatedText || "";
+    }
+
+    function hideWordMeaning() {
+      wordMeaningBox.classList.remove("active");
+      wordMeaningBox.textContent = "";
+    }
+
+    async function fetchWordMeaning(word) {
+      if (wordMeaningCache.has(word)) return wordMeaningCache.get(word);
+      const translated = await fetchZhSubtitle(word);
+      wordMeaningCache.set(word, translated || word);
+      return wordMeaningCache.get(word);
+    }
+
+    function renderSubtitle(payload, zhText = "") {
+      if (!payload) return;
+      if (!showZhSubtitleCheckbox.checked) {
+        subtitleBox.textContent = payload.text || "";
+        hideWordMeaning();
+        return;
+      }
+      subtitleBox.innerHTML = `
+        <div class="subtitle-en">${escapeHtml(payload.text || "")}</div>
+        <div class="subtitle-zh">${escapeHtml(zhText || "中文字幕生成中...")}</div>
+      `;
+    }
+
+    function updateSubtitleDisplay(payload) {
+      currentSubtitlePayload = payload;
+      hideWordMeaning();
+      if (!payload) return;
+      const enText = payload.text || "";
+      if (!showZhSubtitleCheckbox.checked) {
+        renderSubtitle(payload);
+        return;
+      }
+
+      if (zhSubtitleCache.has(enText)) {
+        renderSubtitle(payload, zhSubtitleCache.get(enText));
+        return;
+      }
+
+      renderSubtitle(payload, "中文字幕生成中...");
+      if (zhSubtitlePending.has(enText)) return;
+      zhSubtitlePending.add(enText);
+      fetchZhSubtitle(enText)
+        .then((translated) => {
+          zhSubtitleCache.set(enText, translated || enText);
+          if (currentSubtitlePayload && currentSubtitlePayload.text === enText) {
+            renderSubtitle(currentSubtitlePayload, zhSubtitleCache.get(enText));
+          }
+        })
+        .catch(() => {
+          zhSubtitleCache.set(enText, enText);
+          if (currentSubtitlePayload && currentSubtitlePayload.text === enText) {
+            renderSubtitle(currentSubtitlePayload, enText);
+          }
+        })
+        .finally(() => {
+          zhSubtitlePending.delete(enText);
+        });
+    }
+
+    function getSentenceWindowBySegment(segment) {
+      if (!segment) return null;
+      const idx = subtitles.findIndex(
+        (s) => Number(s.start) === Number(segment.start) && Number(s.end) === Number(segment.end) && (s.text || "") === (segment.text || "")
+      );
+      if (idx < 0) return { ...segment };
+      return getSentenceWindowByIndex(idx, { includeForward: true });
+    }
+
+    function computePlaybackReadiness() {
+      if (!subtitles.length) return { percent: 0, ready: false, firstCompleteSec: 0 };
+      let firstCompleteIdx = -1;
+      for (let i = 0; i < subtitles.length; i += 1) {
+        if (isSentenceEnding(subtitles[i].text || "")) {
+          firstCompleteIdx = i;
+          break;
+        }
+      }
+      const firstCompleteSec =
+        firstCompleteIdx >= 0
+          ? Number(subtitles[firstCompleteIdx].end)
+          : Number(subtitles[subtitles.length - 1].end || 0);
+
+      const sentenceProgress = Math.min(1, firstCompleteSec / MIN_READY_SECONDS);
+      const segmentProgress = Math.min(1, subtitles.length / MIN_READY_SEGMENTS);
+      const progress = Math.max(sentenceProgress, segmentProgress);
+      // 快速啟動策略：有完整句子就播；若尚無標點，達到基礎秒數或片段數也先播。
+      const readyBySentence = firstCompleteIdx >= 0 && firstCompleteSec >= MIN_READY_SECONDS;
+      const readyByFallback =
+        firstCompleteSec >= MIN_READY_SECONDS || subtitles.length >= MIN_READY_SEGMENTS;
+      const ready = readyBySentence || readyByFallback;
+      return { percent: progress * 100, ready, firstCompleteSec };
+    }
+
+    function setPlaybackLocked(locked) {
+      playbackLocked = locked;
+    }
+
+    function setHiddenPreviewMode(enabled) {
+      hiddenPreviewMode = enabled;
+      playerWrap.classList.toggle("processing", enabled);
+    }
+
+    function startHiddenPreviewPlayback() {
+      if (!player || typeof player.playVideo !== "function") return;
+      if (typeof player.mute === "function") {
+        player.mute();
+      }
+      player.playVideo();
+    }
+
+    function startVisiblePlaybackFromBeginning() {
+      if (!player || typeof player.seekTo !== "function") return;
+      if (typeof player.unMute === "function") {
+        player.unMute();
+      }
+      player.seekTo(0, true);
+      player.playVideo();
+      playbackStartedForUser = true;
+    }
+
+    function jumpToSubtitleByIndex(index) {
+      if (!player || !subtitles.length) {
+        setStatus("目前還沒有可跳轉的字幕。", true);
+        return;
+      }
+      const clamped = Math.max(0, Math.min(index, subtitles.length - 1));
+      const segment = subtitles[clamped];
+      if (!segment) return;
+      activeSubtitleIndex = clamped;
+      const sentenceWindow = getSentenceWindowByIndex(clamped, { includeForward: true });
+      updateSubtitleDisplay(sentenceWindow || segment);
+      if (lineLoopEnabled) {
+        lineLoopSegment = sentenceWindow || segment;
+      }
+      player.seekTo(Number(segment.start), true);
+      player.playVideo();
+    }
+
+    function getBaseSubtitleIndex() {
+      if (activeSubtitleIndex >= 0) return activeSubtitleIndex;
+      if (!player || !subtitles.length) return -1;
+      const now = Number(player.getCurrentTime?.() || 0);
+      const idx = subtitles.findIndex((s) => now <= Number(s.end));
+      return idx >= 0 ? idx : subtitles.length - 1;
+    }
+
+    function togglePlayPause() {
+      if (!player || typeof player.getPlayerState !== "function") {
+        setStatus("播放器尚未就緒。", true);
+        return;
+      }
+      const state = player.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+        setStatus("已暫停播放。");
+      } else {
+        player.playVideo();
+        setStatus("繼續播放。");
+      }
+      updatePlayPauseIcon();
+    }
+
+    function updatePlayPauseIcon() {
+      if (!player || typeof player.getPlayerState !== "function") {
+        playPauseBtn.textContent = "▶";
+        playPauseBtn.title = "播放";
+        playPauseBtn.setAttribute("aria-label", "播放");
+        return;
+      }
+
+      const state = player.getPlayerState();
+      const isPlaying = state === YT.PlayerState.PLAYING;
+      playPauseBtn.textContent = isPlaying ? "⏸" : "▶";
+      playPauseBtn.title = isPlaying ? "暫停" : "播放";
+      playPauseBtn.setAttribute("aria-label", isPlaying ? "暫停" : "播放");
+    }
+
+    function extractVideoId(input) {
+      if (!input) return null;
+
+      const trimmed = input.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) {
+        return trimmed;
+      }
+
+      try {
+        const url = new URL(trimmed);
+        if (url.hostname.includes("youtu.be")) {
+          return url.pathname.slice(1).substring(0, 11);
+        }
+
+        if (url.searchParams.has("v")) {
+          return url.searchParams.get("v").substring(0, 11);
+        }
+
+        const paths = url.pathname.split("/").filter(Boolean);
+        const embedIndex = paths.findIndex((p) => p === "embed" || p === "shorts");
+        if (embedIndex !== -1 && paths[embedIndex + 1]) {
+          return paths[embedIndex + 1].substring(0, 11);
+        }
+      } catch (_) {
+        return null;
+      }
+
+      return null;
+    }
+
+    async function startTranscription(videoId) {
+      const resp = await fetch("/api/transcribe/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ videoId })
+      });
+
+      if (!resp.ok) {
+        const msg = await resp.text();
+        throw new Error(msg || `無法啟動字幕生成工作（HTTP ${resp.status}）`);
+      }
+
+      return resp.json();
+    }
+
+    async function getTranscriptionStatus(jobId) {
+      const resp = await fetch(`/api/transcribe/status/${encodeURIComponent(jobId)}`);
+      if (!resp.ok) throw new Error("無法查詢字幕狀態");
+      return resp.json();
+    }
+
+    async function checkBackendHealth() {
+      try {
+        const resp = await fetch("/api/health");
+        if (!resp.ok) {
+          setStatus(
+            `目前頁面不是字幕後端服務（/api/health 回傳 ${resp.status}）。請用 python app.py 並開 http://localhost:5500`,
+            true
+          );
+          return false;
+        }
+        return true;
+      } catch (err) {
+        setStatus(
+          "無法連線到字幕後端。請確認是用 python app.py 啟動，且當前網址為 http://localhost:5500",
+          true
+        );
+        return false;
+      }
+    }
+
+    function stopJobPolling() {
+      if (jobPollTimer) {
+        clearInterval(jobPollTimer);
+        jobPollTimer = null;
+      }
+    }
+
+    function startJobPolling(jobId) {
+      stopJobPolling();
+      jobPollTimer = setInterval(async () => {
+        try {
+          const data = await getTranscriptionStatus(jobId);
+          subtitles = data.segments || [];
+
+          if (data.status === "done") {
+            setStatus(`字幕生成完成，共 ${subtitles.length} 句。`);
+            setStartProgress(100, false);
+            setPlaybackLocked(false);
+            if (!playbackStartedForUser) {
+              setHiddenPreviewMode(false);
+              startVisiblePlaybackFromBeginning();
+            }
+            stopJobPolling();
+            return;
+          }
+
+          if (data.status === "error") {
+            setStatus(`字幕生成失敗：${data.error || "未知錯誤"}`, true);
+            setStartProgress(0, false);
+            setPlaybackLocked(false);
+            setHiddenPreviewMode(false);
+            stopJobPolling();
+            return;
+          }
+
+          setStatus(
+            `字幕生成中... 已完成 ${data.processedSegments || 0} 句${data.message ? `（${data.message}）` : ""}`
+          );
+          const readiness = computePlaybackReadiness();
+          const backendProgress = Number(data.progressPercent ?? NaN);
+          const progressValue = Number.isFinite(backendProgress)
+            ? Math.max(0, Math.min(100, backendProgress))
+            : readiness.percent;
+          setStartProgress(progressValue, !playbackStartedForUser);
+          if (!playbackStartedForUser) {
+            const segDone = Number(data.processedSegments || 0);
+            const segTarget = MIN_READY_SEGMENTS;
+            const secDone = Number(readiness.firstCompleteSec || 0);
+            const secTarget = MIN_READY_SECONDS;
+            setStartProgressDetail(
+              `播放前準備：Seg ${segDone}/${segTarget}，完整句秒數 ${secDone.toFixed(1)}/${secTarget}s`
+            );
+          }
+
+          if (!playbackStartedForUser && readiness.ready) {
+            setPlaybackLocked(false);
+            setHiddenPreviewMode(false);
+            startVisiblePlaybackFromBeginning();
+            setStartProgress(100, false);
+            setStartProgressDetail("");
+            setStatus(`字幕分段已就緒，開始播放（目前 ${subtitles.length} 句）。`);
+          }
+        } catch (err) {
+          setStatus("查詢字幕狀態失敗，請稍後再試。", true);
+          stopJobPolling();
+          console.error(err);
+        }
+      }, 1200);
+    }
+
+    function updateSubtitleByTime(currentTime) {
+      if (!subtitles.length) {
+        updateSubtitleDisplay({ text: "正在等待語音辨識產生字幕..." });
+        return;
+      }
+
+      const idx = subtitles.findIndex(
+        (s) => currentTime >= Number(s.start) && currentTime <= Number(s.end)
+      );
+
+      if (idx === -1) {
+        if (activeSubtitleIndex !== -1) {
+          subtitleBox.textContent = "";
+          activeSubtitleIndex = -1;
+          currentSubtitlePayload = null;
+        }
+        return;
+      }
+
+      if (idx !== activeSubtitleIndex) {
+        const sentenceWindow = getSentenceWindowByIndex(idx, { includeForward: true });
+        updateSubtitleDisplay(sentenceWindow || subtitles[idx]);
+        activeSubtitleIndex = idx;
+      }
+    }
+
+    function startSubtitleSync() {
+      stopSubtitleSync();
+      subtitlePollTimer = setInterval(() => {
+        if (!player || typeof player.getCurrentTime !== "function") return;
+        const currentTime = player.getCurrentTime();
+
+        if (lineLoopEnabled && lineLoopSegment) {
+          const segStart = Number(lineLoopSegment.start);
+          const segEnd = Number(lineLoopSegment.end);
+          if (Number.isFinite(segStart) && Number.isFinite(segEnd) && currentTime > segEnd) {
+            player.seekTo(segStart, true);
+            player.playVideo();
+            return;
+          }
+        }
+
+        updateSubtitleByTime(currentTime);
+      }, 120);
+    }
+
+    function stopSubtitleSync() {
+      if (subtitlePollTimer) {
+        clearInterval(subtitlePollTimer);
+        subtitlePollTimer = null;
+      }
+    }
+
+    function loadVideo(videoId) {
+      const playerVars = {
+        autoplay: 0,
+        controls: 1,
+        rel: 0,
+        modestbranding: 1
+      };
+
+      if (!isFileProtocol) {
+        playerVars.origin = window.location.origin;
+      }
+
+      if (!player) {
+        player = new YT.Player("player", {
+          videoId,
+          playerVars,
+          events: {
+            onReady: () => {
+              startSubtitleSync();
+              if (playbackLocked && hiddenPreviewMode) {
+                startHiddenPreviewPlayback();
+              }
+            },
+            onStateChange: (event) => {
+              updatePlayPauseIcon();
+              if (event.data === YT.PlayerState.PLAYING) {
+                if (playbackLocked && !hiddenPreviewMode) {
+                  player.pauseVideo();
+                  setStatus("字幕尚未分析完成，暫時禁止播放。", true);
+                  return;
+                }
+                startSubtitleSync();
+              }
+              if (event.data === YT.PlayerState.ENDED && videoLoopEnabled) {
+                player.seekTo(0, true);
+                player.playVideo();
+              }
+            },
+            onError: (event) => {
+              const code = event.data;
+              if (code === 153) {
+                setStatus(
+                  "YouTube 錯誤 153：目前頁面沒有可接受的來源資訊。請改用 http://localhost 開啟此檔案。",
+                  true
+                );
+              } else {
+                setStatus(`YouTube 播放失敗（錯誤碼 ${code}）。`, true);
+              }
+            }
+          }
+        });
+      } else {
+        player.loadVideoById(videoId);
+      }
+      if (playbackLocked && hiddenPreviewMode) {
+        startHiddenPreviewPlayback();
+      } else {
+        player.pauseVideo();
+      }
+      applyPlaybackRate();
+      updatePlayPauseIcon();
+    }
+
+    async function handleLoadClick() {
+      if (isFileProtocol) {
+        setStatus(
+          "目前是 file:// 直接開啟，YouTube 可能會擋播放（Error 153）。請用本機伺服器啟動後再載入。",
+          true
+        );
+      }
+
+      const videoId = extractVideoId(urlInput.value);
+      if (!videoId) {
+        setStatus("網址格式不正確，請貼上有效的 YouTube 連結。", true);
+        return;
+      }
+      addVideoToHistory(videoId);
+
+      subtitles = [];
+      activeSubtitleIndex = -1;
+      subtitleBox.textContent = "正在初始化語音辨識...";
+      setStatus("正在載入影片並建立字幕工作...");
+      setStartProgress(0, true);
+      setStartProgressDetail("播放前準備：Seg 0/" + MIN_READY_SEGMENTS + "，完整句秒數 0.0/" + MIN_READY_SECONDS + "s");
+      stopJobPolling();
+      currentJobId = null;
+      setPlaybackLocked(true);
+      setHiddenPreviewMode(true);
+      setLineLoop(false);
+      playbackStartedForUser = false;
+
+      const backendReady = await checkBackendHealth();
+      if (!backendReady) {
+        subtitleBox.textContent = "尚未連線到可用的字幕後端。";
+        setStartProgress(0, false);
+        setStartProgressDetail("");
+        setPlaybackLocked(false);
+        setHiddenPreviewMode(false);
+        return;
+      }
+
+      loadVideo(videoId);
+
+      try {
+        const { jobId } = await startTranscription(videoId);
+        currentJobId = jobId;
+        setStatus("已送出語音辨識，正在轉字幕...");
+        startHiddenPreviewPlayback();
+        startJobPolling(jobId);
+      } catch (err) {
+        subtitleBox.textContent = "無法啟動語音辨識。";
+        setStatus(
+          `影片可播放，但自動字幕生成失敗：${err.message || "未知錯誤"}`,
+          true
+        );
+        setStartProgress(0, false);
+        setStartProgressDetail("");
+        setPlaybackLocked(false);
+        setHiddenPreviewMode(false);
+        console.error(err);
+      }
+    }
+
+    loadBtn.addEventListener("click", handleLoadClick);
+    speedSelect.addEventListener("change", () => {
+      applyPlaybackRate();
+      const st = document.querySelector(".speed-tool");
+      if (st) st.title = `語速 ${speedSelect.value}x`;
+    });
+    loopVideoCheckbox.addEventListener("change", () => {
+      videoLoopEnabled = loopVideoCheckbox.checked;
+      if (loopVideoToggle) {
+        loopVideoToggle.classList.toggle("is-on", videoLoopEnabled);
+      }
+      setStatus(videoLoopEnabled ? "已啟用影片重複播放。" : "已關閉影片重複播放。");
+    });
+    playerSizeRange.addEventListener("input", applyPlayerSize);
+    audioOnlyCheckbox.addEventListener("change", applyAudioOnlyMode);
+    showZhSubtitleCheckbox.addEventListener("change", () => {
+      if (currentSubtitlePayload) {
+        updateSubtitleDisplay(currentSubtitlePayload);
+      }
+    });
+    clearHistoryBtn.addEventListener("click", () => {
+      videoHistory = [];
+      saveHistory();
+      renderHistory();
+      setStatus("已清空影片歷史紀錄。");
+    });
+    repeatLineBtn.addEventListener("click", () => {
+      if (lineLoopEnabled) {
+        setLineLoop(false);
+        setStatus("已關閉單句重複。");
+        return;
+      }
+
+      if (!player || activeSubtitleIndex < 0 || !subtitles[activeSubtitleIndex]) {
+        setStatus("目前沒有可重複的句子。請先播放到有字幕的段落。", true);
+        return;
+      }
+
+      const segment = subtitles[activeSubtitleIndex];
+      setLineLoop(true, segment);
+      player.seekTo(Number(segment.start), true);
+      player.playVideo();
+      setStatus("已啟用單句重複，再按一次可關閉。");
+    });
+    prevLineBtn.addEventListener("click", () => {
+      const base = getBaseSubtitleIndex();
+      if (base < 0) {
+        setStatus("目前還沒有可跳轉的字幕。", true);
+        return;
+      }
+      jumpToSubtitleByIndex(base - 1);
+    });
+    playPauseBtn.addEventListener("click", togglePlayPause);
+    nextLineBtn.addEventListener("click", () => {
+      const base = getBaseSubtitleIndex();
+      if (base < 0) {
+        setStatus("目前還沒有可跳轉的字幕。", true);
+        return;
+      }
+      jumpToSubtitleByIndex(base + 1);
+    });
+    subtitleBox.addEventListener("dblclick", async () => {
+      const selectedRaw = (window.getSelection?.().toString() || "").trim();
+      const picked = selectedRaw
+        .replace(/^[^A-Za-z']+|[^A-Za-z']+$/g, "")
+        .toLowerCase();
+      if (!picked) return;
+
+      if (player && typeof player.pauseVideo === "function") {
+        player.pauseVideo();
+      }
+
+      wordMeaningBox.innerHTML = `<strong>${escapeHtml(picked)}</strong>：查詢中...`;
+      wordMeaningBox.classList.add("active");
+      try {
+        const meaning = await fetchWordMeaning(picked);
+        wordMeaningBox.innerHTML = `<strong>${escapeHtml(picked)}</strong>：${escapeHtml(
+          meaning || "查無結果"
+        )}`;
+      } catch (_) {
+        wordMeaningBox.innerHTML = `<strong>${escapeHtml(picked)}</strong>：查詢失敗`;
+      }
+    });
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        handleLoadClick();
+      }
+    });
+    applyPlayerSize();
+    attachPaneDividerDrag();
+    audioOnlyCheckbox.checked = true;
+    applyAudioOnlyMode();
+    if (loopVideoToggle) {
+      loopVideoToggle.classList.toggle("is-on", loopVideoCheckbox.checked);
+    }
+    const speedToolEl = document.querySelector(".speed-tool");
+    if (speedToolEl && speedSelect) {
+      speedToolEl.title = `語速 ${speedSelect.value}x`;
+    }
+    videoHistory = loadHistory();
+    renderHistory();
+
+    if (isFileProtocol) {
+      setStatus(
+        "偵測到 file://。請改用本機伺服器開啟，例如：python -m http.server 5500，然後打開 http://localhost:5500/index.html",
+        true
+      );
+    }
+  </script>
+</body>
+</html>
